@@ -1,0 +1,11 @@
+{
+  "key.agent-crafter.menu": "Open Agent Crafter Menu",
+  "category.agent-crafter": "Agent crafter",
+  "screen.agent-crafter.config": "Agent Crafter Configuration",
+  "button.agent-crafter.status": "Agent API: %s",
+  "button.agent-crafter.status.on": "ON",
+  "button.agent-crafter.status.off": "OFF",
+  "field.agent-crafter.host": "Host",
+  "field.agent-crafter.port": "Port",
+  "toast.agent-crafter.api-updated-toast": "AgentCrafter Config Updated"
+}

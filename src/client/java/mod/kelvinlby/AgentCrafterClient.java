@@ -16,7 +16,7 @@ public class AgentCrafterClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		config = AgentCrafterConfig.load();
+	config = AgentCrafterConfig.load();
 		socketUtil = new SocketUtil();
 
 		if (config.status) {
@@ -25,7 +25,7 @@ public class AgentCrafterClient implements ClientModInitializer {
 
 		// Register key binding
 		openMenuKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-				"key.agent-crafter.open_menu",
+				"key.agent-crafter.menu",
 				InputUtil.Type.KEYSYM,
 				GLFW.GLFW_KEY_I,
 				"category.agent-crafter"
@@ -51,5 +51,9 @@ public class AgentCrafterClient implements ClientModInitializer {
 
 	public static AgentCrafterConfig getConfig() {
 		return config;
+	}
+
+	public static SocketUtil getSocketUtil() {
+		return socketUtil;
 	}
 }

@@ -1,8 +1,0 @@
-{
-  "key.agent-crafter.open_menu": "Open Agent Crafter Menu",
-  "category.agent-crafter": "Agent crafter",
-  "screen.agent-crafter.config": "Agent Crafter Configuration",
-  "button.agent-crafter.status": "API Server: %s",
-  "button.agent-crafter.status.on": "ON",
-  "button.agent-crafter.status.off": "OFF"
-}

@@ -1,9 +1,15 @@
 package mod.kelvinlby.util;
 
-public class SocketUtil {
-    public void start(String host, int port) {}
+import mod.kelvinlby.AgentCrafter;
 
-    public void stop() {}
+public class SocketUtil {
+    public void start(String host, int port) {
+        AgentCrafter.LOGGER.info("Starting AgentCrafter socket on {}:{}", host, port);
+    }
+
+    public void stop() {
+        AgentCrafter.LOGGER.info("Stopping AgentCrafter socket");
+    }
 
     public boolean isRunning() {
         return true;

@@ -2,20 +2,33 @@ package mod.kelvinlby.ui;
 
 import mod.kelvinlby.AgentCrafterClient;
 import mod.kelvinlby.AgentCrafterConfig;
+import mod.kelvinlby.util.SocketUtil;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.Text;
 
 public class ConfigScreen extends Screen {
-    private static final int UPDATE_INTERVAL_MIN = 1;
-    private static final int UPDATE_INTERVAL_MAX = 1000;
     private final AgentCrafterConfig config;
+    private final String originalHost;
+    private final int originalPort;
+    private final boolean originalStatus;
+
+    private TextFieldWidget hostField;
+    private TextFieldWidget portField;
+    private ButtonWidget statusButton;
+    private ButtonWidget doneButton;
+    private ButtonWidget cancelButton;
 
     public ConfigScreen() {
         super(Text.translatable("screen.agent-crafter.config"));
         this.config = AgentCrafterClient.getConfig();
+        // Save original values for cancel functionality
+        this.originalHost = config.host;
+        this.originalPort = config.port;
+        this.originalStatus = config.status;
     }
 
     @Override
@@ -23,74 +36,100 @@ public class ConfigScreen extends Screen {
         super.init();
 
         int centerX = this.width / 2;
-        int startY = this.height / 2 - 50;
+        int startY = this.height / 2 - 60;
+        int labelWidth = 40;
+        int fieldWidth = 150;
 
-        // Add minimap toggle button
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.translatable("button.agent-crafter.status", AgentCrafterClient.shouldShowMinimap() ? Text.translatable("button.chunk-radar.on") : Text.translatable("button.chunk-radar.off")),
+        // Add Agent API toggle button
+        statusButton = ButtonWidget.builder(
+            Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")),
             button -> {
-                AgentCrafterClient.setShowMinimap(!AgentCrafterClient.shouldShowMinimap());
-                button.setMessage(Text.translatable("button.chunk-radar.chunkmap_toggle", AgentCrafterClient.shouldShowMinimap() ? Text.translatable("button.chunk-radar.on") : Text.translatable("button.chunk-radar.off")));
+                config.status = !config.status;
+                button.setMessage(Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")));
             })
             .dimensions(centerX - 100, startY, 200, 20)
-            .build());
+            .build();
+        this.addDrawableChild(statusButton);
 
-        // Add update interval slider
-        this.addDrawableChild(new SliderWidget(centerX - 100, startY + 30, 200, 20,
-            Text.translatable("slider.chunk-radar.update_interval", config.updateInterval),
-            (config.updateInterval - UPDATE_INTERVAL_MIN) / (double)(UPDATE_INTERVAL_MAX - UPDATE_INTERVAL_MIN)) {
-            @Override
-            protected void updateMessage() {
-                config.updateInterval = (int)(this.value * (UPDATE_INTERVAL_MAX - UPDATE_INTERVAL_MIN)) + UPDATE_INTERVAL_MIN;
-                this.setMessage(Text.translatable("slider.chunk-radar.update_interval", config.updateInterval));
-            }
+        // Add Host IP input field (label will be drawn in render method)
+        hostField = new TextFieldWidget(this.textRenderer, centerX - 100 + labelWidth + 5, startY + 40, fieldWidth, 20, Text.translatable("field.agent-crafter.host"));
+        hostField.setMaxLength(50);
+        hostField.setText(config.host);
+        this.addDrawableChild(hostField);
 
-            @Override
-            protected void applyValue() {
-                config.updateInterval = (int)(this.value * (UPDATE_INTERVAL_MAX - UPDATE_INTERVAL_MIN)) + UPDATE_INTERVAL_MIN;
-            }
-        });
+        // Add Port input field (label will be drawn in render method)
+        portField = new TextFieldWidget(this.textRenderer, centerX - 100 + labelWidth + 5, startY + 70, fieldWidth, 20, Text.translatable("field.agent-crafter.port"));
+        portField.setMaxLength(5);
+        portField.setText(String.valueOf(config.port));
+        this.addDrawableChild(portField);
 
-        // Add detection method cycling button
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.translatable("button.chunk-radar.detection_method", config.detectionMethod),
+        // Add Cancel button
+        cancelButton = ButtonWidget.builder(
+            Text.translatable("gui.cancel"),
             button -> {
-                // Cycle through methods
-                String[] methods = {
-                    Text.translatable("option.chunk-radar.detection_method_1").getString(),
-                    Text.translatable("option.chunk-radar.detection_method_2").getString(),
-                    Text.translatable("option.chunk-radar.detection_method_3").getString(),
-                    Text.translatable("option.chunk-radar.detection_method_4").getString()
-                };
-                for (int i = 0; i < methods.length; i++) {
-                    if (methods[i].equals(config.detectionMethod)) {
-                        config.detectionMethod = methods[(i + 1) % methods.length];
-                        button.setMessage(Text.translatable("button.chunk-radar.detection_method", config.detectionMethod));
-                        break;
-                    }
-                }
-            })
-            .dimensions(centerX - 100, startY + 60, 200, 20)
-            .build());
-
-        // Add close button
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.translatable("gui.done"),
-            button -> {
-                config.save();
-                // No need to update detector - it reads config dynamically
+                // Revert all changes
+                config.host = originalHost;
+                config.port = originalPort;
+                config.status = originalStatus;
                 this.close();
             })
-            .dimensions(centerX - 50, startY + 90, 100, 20)
-            .build());
+            .dimensions(centerX - 105, startY + 100, 100, 20)
+            .build();
+        this.addDrawableChild(cancelButton);
+
+        // Add Done button
+        doneButton = ButtonWidget.builder(
+            Text.translatable("gui.done"),
+            button -> {
+                // Save the values to config
+                config.host = hostField.getText();
+                try {
+                    config.port = Integer.parseInt(portField.getText());
+                } catch (NumberFormatException e) {
+                    config.port = 1210; // Reset to default if invalid
+                }
+                config.save();
+
+                // Restart socket if configuration changed
+                SocketUtil socketUtil = AgentCrafterClient.getSocketUtil();
+                if (socketUtil != null) {
+                    if (socketUtil.isRunning()) {
+                        socketUtil.stop();
+                    }
+                    if (config.status) {
+                        socketUtil.start(config.host, config.port);
+                    }
+                }
+
+                // Show toast notification
+                if (this.client != null) {
+                    this.client.getToastManager().add(
+                        SystemToast.create(this.client, SystemToast.Type.NARRATOR_TOGGLE,
+                            Text.translatable("toast.agent-crafter.api-updated-toast"),
+                            Text.literal("Serving on: " + config.host + ":" + config.port))
+                    );
+                }
+
+                this.close();
+            })
+            .dimensions(centerX + 5, startY + 100, 100, 20)
+            .build();
+        this.addDrawableChild(doneButton);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
 
+        int centerX = this.width / 2;
+        int startY = this.height / 2 - 60;
+
         // Draw title
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFFFF);
+
+        // Draw labels for input fields (aligned with text fields)
+        context.drawText(this.textRenderer, Text.translatable("field.agent-crafter.host"), centerX - 100, startY + 46, 0xFFFFFFFF, true);
+        context.drawText(this.textRenderer, Text.translatable("field.agent-crafter.port"), centerX - 100, startY + 76, 0xFFFFFFFF, true);
     }
 
     @Override
