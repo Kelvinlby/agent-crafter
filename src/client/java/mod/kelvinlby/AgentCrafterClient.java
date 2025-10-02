@@ -46,7 +46,7 @@ public class AgentCrafterClient implements ClientModInitializer {
 				AgentCrafter.LOGGER.info("Game shutting down, stopping AgentCrafter server");
 				socketUtil.stop();
 			}
-		}, "AgentCrafter-Shutdown"));
+		}, "AgentCrafter_Shutdown"));
 	}
 
 	public static AgentCrafterConfig getConfig() {
