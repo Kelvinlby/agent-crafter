@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "agent-crafter",
+	"version": "${version}",
+	"name": "Agent Crafter",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/agent-crafter/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"mod.kelvinlby.AgentCrafter"
+		],
+		"client": [
+			"mod.kelvinlby.AgentCrafterClient"
+		]
+	},
+	"mixins": [
+		"agent-crafter.mixins.json",
+		{
+			"config": "agent-crafter.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.8",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
