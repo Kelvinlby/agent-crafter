@@ -39,13 +39,13 @@ public class ConfigScreen extends Screen {
 
         // Add Agent API toggle button
         ButtonWidget statusButton = ButtonWidget.builder(
-                        Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")),
-                        button -> {
-                            config.status = !config.status;
-                            button.setMessage(Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")));
-                        })
-                .dimensions(centerX - 100, startY, 200, 20)
-                .build();
+            Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")),
+            button -> {
+                config.status = !config.status;
+                button.setMessage(Text.translatable("button.agent-crafter.status", config.status ? Text.translatable("button.agent-crafter.status.on") : Text.translatable("button.agent-crafter.status.off")));
+            })
+            .dimensions(centerX - 100, startY, 200, 20)
+            .build();
         this.addDrawableChild(statusButton);
 
         // Add Host IP input field (label will be drawn in render method)
@@ -63,16 +63,16 @@ public class ConfigScreen extends Screen {
         // Add Cancel button
         // - Revert all settings
         ButtonWidget cancelButton = ButtonWidget.builder(
-                        Text.translatable("gui.cancel"),
-                        button -> {
-                            // Revert all changes
-                            config.host = originalHost;
-                            config.port = originalPort;
-                            config.status = originalStatus;
-                            this.close();
-                        })
-                .dimensions(centerX - 105, startY + 100, 100, 20)
-                .build();
+            Text.translatable("gui.cancel"),
+            button -> {
+                // Revert all changes
+                config.host = originalHost;
+                config.port = originalPort;
+                config.status = originalStatus;
+                this.close();
+            })
+            .dimensions(centerX - 105, startY + 100, 100, 20)
+            .build();
         this.addDrawableChild(cancelButton);
 
         // Add Done button
@@ -81,41 +81,44 @@ public class ConfigScreen extends Screen {
         // - Restart socket if configuration changed
         // - Show toast notification
         ButtonWidget doneButton = ButtonWidget.builder(
-                        Text.translatable("gui.done"),
-                        button -> {
-                            // Save the values to config
-                            config.host = hostField.getText();
-                            try {
-                                config.port = Integer.parseInt(portField.getText());
-                            } catch (NumberFormatException e) {
-                                config.port = 1210; // Reset to default if invalid
-                            }
-                            config.save();
+            Text.translatable("gui.done"),
+            button -> {
+                // Save the values to config
+                config.host = hostField.getText();
+                try {
+                    config.port = Integer.parseInt(portField.getText());
+                } catch (NumberFormatException e) {
+                    config.port = 1210; // Reset to default if invalid
+                }
+                config.save();
 
-                            // Restart socket if configuration changed
-                            SocketUtil socketUtil = AgentCrafterClient.getSocketUtil();
-                            if (socketUtil != null) {
-                                if (socketUtil.isRunning()) {
-                                    socketUtil.stop();
-                                }
-                                if (config.status) {
-                                    socketUtil.start(config.host, config.port);
-                                }
-                            }
+                // Restart socket if configuration changed
+                SocketUtil socketUtil = AgentCrafterClient.getSocketUtil();
+                if (socketUtil != null) {
+                    if (socketUtil.isRunning()) {
+                        socketUtil.stop();
+                    }
+                    if (config.status) {
+                        socketUtil.start(config.host, config.port);
+                    }
+                }
 
-                            // Show toast notification
-                            if (this.client != null) {
-                                this.client.getToastManager().add(
-                                        SystemToast.create(this.client, SystemToast.Type.NARRATOR_TOGGLE,
-                                                Text.translatable("toast.agent-crafter.api-updated-toast"),
-                                                Text.literal("Serving on: " + config.host + ":" + config.port))
-                                );
-                            }
+                // Show toast notification
+                if (this.client != null) {
+                    this.client.getToastManager().add(
+                        SystemToast.create(
+                            this.client,
+                            SystemToast.Type.NARRATOR_TOGGLE,
+                            Text.translatable("toast.agent-crafter.api-updated-toast"),
+                            Text.literal("Serving on: " + config.host + ":" + config.port)
+                        )
+                    );
+                }
 
-                            this.close();
-                        })
-                .dimensions(centerX + 5, startY + 100, 100, 20)
-                .build();
+                this.close();
+            })
+            .dimensions(centerX + 5, startY + 100, 100, 20)
+            .build();
         this.addDrawableChild(doneButton);
     }
 
