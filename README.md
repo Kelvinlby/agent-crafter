@@ -1,5 +1,6 @@
 # AgentCrafter
 [![build](https://github.com/Kelvinlby/agent-crafter/actions/workflows/build.yml/badge.svg)](https://github.com/Kelvinlby/agent-crafter/actions/workflows/build.yml)
+
 AgentCrafter is a Fabric mod to enable AI agents to control players in minecraft. 
 
 ## Get Started
